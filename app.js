@@ -1245,12 +1245,33 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       showToast('Se ha vaciado el carrito', 'ph-trash');
     }
 
-    const navBtn = document.getElementById('nav-category-btn');
-    const navMenu = document.getElementById('nav-category-menu');
-    const navBackdrop = document.getElementById('nav-category-backdrop');
-    const navCaret = document.getElementById('nav-category-caret');
-    const navClose = document.getElementById('nav-category-close');
-    const navAccordion = document.getElementById('nav-category-accordion');
+    let navBtn = document.getElementById('nav-category-btn');
+    let navMenu = document.getElementById('nav-category-menu');
+    let navBackdrop = document.getElementById('nav-category-backdrop');
+    let navCaret = document.getElementById('nav-category-caret');
+    let navClose = document.getElementById('nav-category-close');
+    let navAccordion = document.getElementById('nav-category-accordion');
+
+    function refreshNavCategoryElements() {
+      navBtn = document.getElementById('nav-category-btn');
+      navMenu = document.getElementById('nav-category-menu');
+      navBackdrop = document.getElementById('nav-category-backdrop');
+      navCaret = document.getElementById('nav-category-caret');
+      navClose = document.getElementById('nav-category-close');
+      navAccordion = document.getElementById('nav-category-accordion');
+
+      if (navBtn) navBtn.onclick = toggleNavCategoryMenu;
+      if (navClose) navClose.onclick = (e) => { e.stopPropagation(); closeNavCategoryMenu(); };
+      if (navBackdrop) navBackdrop.onclick = closeNavCategoryMenu;
+      if (navMenu) {
+        navMenu.onclick = (event) => {
+          const link = event.target.closest('a[href]');
+          if (link && link.target !== '_blank' && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+            closeNavCategoryMenu();
+          }
+        };
+      }
+    }
 
     function openNavCategoryMenu() {
       if (!navMenu) return;
@@ -3022,22 +3043,26 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       if (modalBody) modalBody.scrollTop = 0;
     }
 
-    if (navAuthBtn) {
-      navAuthBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const user = getCurrentUser();
-        if (user) {
-          const currentPath = getPageName();
-          if (currentPath === 'cuenta.html') {
-            showToast('Ya te encuentras en Mi Cuenta', 'ph-user');
-            return;
+    function initNavAuthListener() {
+      const btn = document.getElementById('nav-auth-btn');
+      if (btn) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          const user = getCurrentUser();
+          if (user) {
+            const currentPath = getPageName();
+            if (currentPath === 'cuenta.html') {
+              showToast('Ya te encuentras en Mi Cuenta', 'ph-user');
+              return;
+            }
+            navigateTo('cuenta.html');
+          } else {
+            openAuthModal('login');
           }
-          navigateTo('cuenta.html');
-        } else {
-          openAuthModal('login');
-        }
-      });
+        };
+      }
     }
+    initNavAuthListener();
 
     if (authCloseBtn) authCloseBtn.addEventListener('click', closeAuthModal);
     if (authModal) {
@@ -4611,7 +4636,46 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     saveFavoriteUndoState();
     scheduleFavoriteUndoExpiration();
 
+    async function loadSharedLayout() {
+      const headerContainer = document.getElementById('site-header-container');
+      const footerContainer = document.getElementById('site-footer-container');
+      const tasks = [];
+      if (headerContainer) {
+        tasks.push(
+          fetch('header.html')
+            .then(res => res.text())
+            .then(html => {
+              headerContainer.outerHTML = html;
+            })
+            .catch(err => console.warn('Error al cargar header.html:', err))
+        );
+      }
+      if (footerContainer) {
+        tasks.push(
+          fetch('footer.html')
+            .then(res => res.text())
+            .then(html => {
+              footerContainer.outerHTML = html;
+            })
+            .catch(err => console.warn('Error al cargar footer.html:', err))
+        );
+      }
+      if (tasks.length) {
+        await Promise.all(tasks);
+        if (typeof refreshNavCategoryElements === 'function') refreshNavCategoryElements();
+        if (typeof setupLiveSearch === 'function') {
+          setupLiveSearch('live-search-input', 'search-dropdown');
+          setupLiveSearch('live-search-input-mobile', 'search-dropdown-mobile');
+        }
+        if (typeof initNavAuthListener === 'function') initNavAuthListener();
+        if (typeof updateActiveNav === 'function') updateActiveNav();
+        if (typeof updateCartBadge === 'function') updateCartBadge();
+        if (typeof updateAuthUI === 'function') updateAuthUI();
+      }
+    }
+
     async function iniciarConCatalogo() {
+      await loadSharedLayout();
       // El carrito guardado no necesita esperar a las consultas de catálogo o sesión.
       updateCartBadge();
       updateCartDrawerUI();
