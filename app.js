@@ -1252,7 +1252,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     let navClose = document.getElementById('nav-category-close');
     let navAccordion = document.getElementById('nav-category-accordion');
 
-    function refreshNavCategoryElements() {
+    function actualizarElementosMenuCategorias() {
       navBtn = document.getElementById('nav-category-btn');
       navMenu = document.getElementById('nav-category-menu');
       navBackdrop = document.getElementById('nav-category-backdrop');
@@ -3043,7 +3043,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       if (modalBody) modalBody.scrollTop = 0;
     }
 
-    function initNavAuthListener() {
+    function inicializarBotonAutenticacion() {
       const btn = document.getElementById('nav-auth-btn');
       if (btn) {
         btn.onclick = (e) => {
@@ -3062,7 +3062,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         };
       }
     }
-    initNavAuthListener();
+    inicializarBotonAutenticacion();
 
     if (authCloseBtn) authCloseBtn.addEventListener('click', closeAuthModal);
     if (authModal) {
@@ -4636,38 +4636,41 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     saveFavoriteUndoState();
     scheduleFavoriteUndoExpiration();
 
-    async function loadSharedLayout() {
-      const headerContainer = document.getElementById('site-header-container');
-      const footerContainer = document.getElementById('site-footer-container');
-      const tasks = [];
-      if (headerContainer) {
-        tasks.push(
+    async function cargarEstructuraCompartida() {
+      const contenedorEncabezado = document.getElementById('site-header-container');
+      const contenedorPie = document.getElementById('site-footer-container');
+      const tareasDescarga = [];
+
+      if (contenedorEncabezado) {
+        tareasDescarga.push(
           fetch('header.html')
-            .then(res => res.text())
-            .then(html => {
-              headerContainer.outerHTML = html;
+            .then(respuesta => respuesta.text())
+            .then(codigoHtml => {
+              contenedorEncabezado.outerHTML = codigoHtml;
             })
-            .catch(err => console.warn('Error al cargar header.html:', err))
+            .catch(error => console.warn('Error al cargar header.html:', error))
         );
       }
-      if (footerContainer) {
-        tasks.push(
+
+      if (contenedorPie) {
+        tareasDescarga.push(
           fetch('footer.html')
-            .then(res => res.text())
-            .then(html => {
-              footerContainer.outerHTML = html;
+            .then(respuesta => respuesta.text())
+            .then(codigoHtml => {
+              contenedorPie.outerHTML = codigoHtml;
             })
-            .catch(err => console.warn('Error al cargar footer.html:', err))
+            .catch(error => console.warn('Error al cargar footer.html:', error))
         );
       }
-      if (tasks.length) {
-        await Promise.all(tasks);
-        if (typeof refreshNavCategoryElements === 'function') refreshNavCategoryElements();
+
+      if (tareasDescarga.length) {
+        await Promise.all(tareasDescarga);
+        if (typeof actualizarElementosMenuCategorias === 'function') actualizarElementosMenuCategorias();
         if (typeof setupLiveSearch === 'function') {
           setupLiveSearch('live-search-input', 'search-dropdown');
           setupLiveSearch('live-search-input-mobile', 'search-dropdown-mobile');
         }
-        if (typeof initNavAuthListener === 'function') initNavAuthListener();
+        if (typeof inicializarBotonAutenticacion === 'function') inicializarBotonAutenticacion();
         if (typeof updateActiveNav === 'function') updateActiveNav();
         if (typeof updateCartBadge === 'function') updateCartBadge();
         if (typeof updateAuthUI === 'function') updateAuthUI();
@@ -4675,7 +4678,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     }
 
     async function iniciarConCatalogo() {
-      await loadSharedLayout();
+      await cargarEstructuraCompartida();
       // El carrito guardado no necesita esperar a las consultas de catálogo o sesión.
       updateCartBadge();
       updateCartDrawerUI();
