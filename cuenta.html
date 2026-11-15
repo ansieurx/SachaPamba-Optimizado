@@ -17,6 +17,8 @@
   <!-- Tipografías: Fraunces (Botánica/Editorial) + Outfit (Cuerpo moderno) + Caveat (Manuscrita artesanal) -->
   <link rel="preload" href="assets/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/site.css">
+  <link rel="preload" href="header.html" as="fetch" crossorigin>
+  <link rel="preload" href="footer.html" as="fetch" crossorigin>
   <link rel="preconnect" href="https://uucegdaytxxoedwnoenv.supabase.co" crossorigin>
   <link rel="modulepreload" href="assets/vendor/supabase/supabase-js.bundle.mjs">
   <link rel="modulepreload" href="assets/product-images.js">
@@ -32,6 +34,23 @@
        ========================================== -->
     <!-- Encabezado compartido cargado dinámicamente -->
   <div id="site-header-container"></div>
+  <script>
+    (function(){
+      try {
+        var c = document.getElementById('site-header-container');
+        if (!c) return;
+        var h = sessionStorage.getItem('sacha_header_html') || localStorage.getItem('sacha_header_html');
+        if (h) { c.outerHTML = h; }
+        else {
+          fetch('header.html').then(function(r){return r.text();}).then(function(html){
+            try { sessionStorage.setItem('sacha_header_html', html); localStorage.setItem('sacha_header_html', html); } catch(e){}
+            var el = document.getElementById('site-header-container');
+            if (el) el.outerHTML = html;
+          });
+        }
+      } catch(e) {}
+    })();
+  </script>
 
   <!-- Telón de fondo para cerrar dropdown -->
   <div id="nav-category-backdrop" class="hidden fixed inset-0 bg-black/20 z-30"></div>
@@ -1534,6 +1553,23 @@
        ========================================== -->
     <!-- Pie de página compartido cargado dinámicamente -->
   <div id="site-footer-container"></div>
+  <script>
+    (function(){
+      try {
+        var c = document.getElementById('site-footer-container');
+        if (!c) return;
+        var f = sessionStorage.getItem('sacha_footer_html') || localStorage.getItem('sacha_footer_html');
+        if (f) { c.outerHTML = f; }
+        else {
+          fetch('footer.html').then(function(r){return r.text();}).then(function(html){
+            try { sessionStorage.setItem('sacha_footer_html', html); localStorage.setItem('sacha_footer_html', html); } catch(e){}
+            var el = document.getElementById('site-footer-container');
+            if (el) el.outerHTML = html;
+          });
+        }
+      } catch(e) {}
+    })();
+  </script>
 
   <!-- Desplegable Lateral Delgado del Carrito (Ultra Delgado, solo imagen del producto) -->
 

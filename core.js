@@ -4710,44 +4710,82 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     scheduleFavoriteUndoExpiration();
 
     async function cargarEstructuraCompartida() {
-      const contenedorEncabezado = document.getElementById('site-header-container');
-      const contenedorPie = document.getElementById('site-footer-container');
-      const tareasDescarga = [];
+      let contenedorEncabezado = document.getElementById('site-header-container') || document.querySelector('header.smart-header');
+      let contenedorPie = document.getElementById('site-footer-container') || document.querySelector('footer[role="contentinfo"]');
 
-      if (contenedorEncabezado) {
-        tareasDescarga.push(
-          fetch('header.html')
-            .then(respuesta => respuesta.text())
-            .then(codigoHtml => {
-              contenedorEncabezado.outerHTML = codigoHtml;
-            })
-            .catch(error => console.warn('Error al cargar header.html:', error))
-        );
-      }
-
-      if (contenedorPie) {
-        tareasDescarga.push(
-          fetch('footer.html')
-            .then(respuesta => respuesta.text())
-            .then(codigoHtml => {
-              contenedorPie.outerHTML = codigoHtml;
-            })
-            .catch(error => console.warn('Error al cargar footer.html:', error))
-        );
-      }
-
-      if (tareasDescarga.length) {
-        await Promise.all(tareasDescarga);
-        if (typeof actualizarElementosMenuCategorias === 'function') actualizarElementosMenuCategorias();
-        if (typeof setupLiveSearch === 'function') {
-          setupLiveSearch('live-search-input', 'search-dropdown');
-          setupLiveSearch('live-search-input-mobile', 'search-dropdown-mobile');
+      // 1. Inyección ultra rápida desde memoria caché local (0 ms de latencia)
+      try {
+        const encabezadoCache = sessionStorage.getItem('sacha_header_html') || localStorage.getItem('sacha_header_html');
+        if (encabezadoCache && document.getElementById('site-header-container')) {
+          document.getElementById('site-header-container').outerHTML = encabezadoCache;
         }
-        if (typeof inicializarBotonAutenticacion === 'function') inicializarBotonAutenticacion();
+        const pieCache = sessionStorage.getItem('sacha_footer_html') || localStorage.getItem('sacha_footer_html');
+        if (pieCache && document.getElementById('site-footer-container')) {
+          document.getElementById('site-footer-container').outerHTML = pieCache;
+        }
+      } catch (errorCache) {
+        console.warn('Caché no disponible:', errorCache);
+      }
+
+      // Si ya existen en el DOM por caché, reconectar inmediatamente elementos clave
+      if (document.querySelector('header.smart-header')) {
+        if (typeof actualizarElementosMenuCategorias === 'function') actualizarElementosMenuCategorias();
         if (typeof updateActiveNav === 'function') updateActiveNav();
         if (typeof updateCartBadge === 'function') updateCartBadge();
         if (typeof updateAuthUI === 'function') updateAuthUI();
       }
+
+      // 2. Descarga en paralelo para garantizar contenido fresco y actualizar caché
+      const tareasDescarga = [];
+
+      tareasDescarga.push(
+        fetch('header.html')
+          .then(respuesta => respuesta.text())
+          .then(codigoHtml => {
+            try {
+              sessionStorage.setItem('sacha_header_html', codigoHtml);
+              localStorage.setItem('sacha_header_html', codigoHtml);
+            } catch(e) {}
+            const elementoActual = document.getElementById('site-header-container') || document.querySelector('header.smart-header');
+            if (elementoActual && elementoActual.outerHTML !== codigoHtml) {
+              elementoActual.outerHTML = codigoHtml;
+            }
+          })
+          .catch(error => console.warn('Error al cargar header.html:', error))
+      );
+
+      tareasDescarga.push(
+        fetch('footer.html')
+          .then(respuesta => respuesta.text())
+          .then(codigoHtml => {
+            try {
+              sessionStorage.setItem('sacha_footer_html', codigoHtml);
+              localStorage.setItem('sacha_footer_html', codigoHtml);
+            } catch(e) {}
+            const elementoActual = document.getElementById('site-footer-container') || document.querySelector('footer[role="contentinfo"]');
+            if (elementoActual && elementoActual.outerHTML !== codigoHtml) {
+              elementoActual.outerHTML = codigoHtml;
+            }
+          })
+          .catch(error => console.warn('Error al cargar footer.html:', error))
+      );
+
+      // Si el encabezado ya está en pantalla, no bloqueamos la renderización
+      const yaEstabaEnDOM = !!document.querySelector('header.smart-header');
+      if (!yaEstabaEnDOM && tareasDescarga.length) {
+        await Promise.all(tareasDescarga);
+      }
+
+      // 3. Reconexión de interactividad
+      if (typeof actualizarElementosMenuCategorias === 'function') actualizarElementosMenuCategorias();
+      if (typeof setupLiveSearch === 'function') {
+        setupLiveSearch('live-search-input', 'search-dropdown');
+        setupLiveSearch('live-search-input-mobile', 'search-dropdown-mobile');
+      }
+      if (typeof inicializarBotonAutenticacion === 'function') inicializarBotonAutenticacion();
+      if (typeof updateActiveNav === 'function') updateActiveNav();
+      if (typeof updateCartBadge === 'function') updateCartBadge();
+      if (typeof updateAuthUI === 'function') updateAuthUI();
     }
 
     async function iniciarConCatalogo() {
