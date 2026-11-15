@@ -3932,7 +3932,10 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
 
     function cloneTemplate(id, values = {}) {
       const template = document.getElementById(id);
-      if (!template || !template.content) throw new Error(`Falta la plantilla HTML: ${id}`);
+      if (!template || !template.content) {
+        console.debug(`[Optimizacion] Plantilla no requerida en esta vista: ${id}`);
+        return document.createDocumentFragment();
+      }
       const content = template.content.cloneNode(true);
       bindValues(content, values, id.includes('thumbnail') ? 'thumbnail' : 'card');
       return content;
