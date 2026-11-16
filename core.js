@@ -4781,6 +4781,11 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
             const placeholder = document.getElementById('site-header-container');
             if (placeholder) {
               placeholder.outerHTML = codigoHtml;
+            } else {
+              const existingHeader = document.querySelector('header.smart-header');
+              if (existingHeader && existingHeader.outerHTML !== codigoHtml) {
+                existingHeader.outerHTML = codigoHtml;
+              }
             }
           })
           .catch(error => console.warn('Error al cargar header.html:', error))
@@ -4797,6 +4802,11 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
             const placeholder = document.getElementById('site-footer-container');
             if (placeholder) {
               placeholder.outerHTML = codigoHtml;
+            } else {
+              const existingFooter = document.querySelector('footer[role="contentinfo"]');
+              if (existingFooter && existingFooter.outerHTML !== codigoHtml) {
+                existingFooter.outerHTML = codigoHtml;
+              }
             }
           })
           .catch(error => console.warn('Error al cargar footer.html:', error))
