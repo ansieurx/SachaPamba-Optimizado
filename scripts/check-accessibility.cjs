@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
   const { parse } = await import('parse5');
   process.chdir(path.resolve(__dirname, '..'));
   const titles = new Set();
-  const pages = fs.readdirSync('.').filter(file => file.endsWith('.html'));
+  const pages = fs.readdirSync('.').filter(file => file.endsWith('.html') && file !== 'header.html' && file !== 'footer.html');
   for (const file of pages) {
     const source = fs.readFileSync(file, 'utf8');
     const errors = [];

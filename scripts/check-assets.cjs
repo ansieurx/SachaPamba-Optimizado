@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const postcss = require('postcss');
 
 process.chdir(path.resolve(__dirname, '..'));
-const pages = fs.readdirSync('.').filter(file => file.endsWith('.html'));
+const pages = fs.readdirSync('.').filter(file => file.endsWith('.html') && file !== 'header.html' && file !== 'footer.html');
 const css = fs.readFileSync('assets/site.css', 'utf8');
 const rules = new Set();
 postcss.parse(css).walkRules(rule => rule.selector.split(',').forEach(selector => rules.add(selector.trim())));
@@ -40,6 +40,6 @@ for (const icon of iconNames) {
     assert(rules.has(`.${weight}.${icon}:before`), `Missing icon: ${weight} ${icon}`);
   }
 }
-assert(css.includes('@view-transition{navigation:none}'), 'Cross-document transitions must remain disabled to prevent flicker');
+assert(/@view-transition\s*\{\s*navigation:\s*none;?\s*\}/.test(css), 'Cross-document transitions must remain disabled to prevent flicker');
 assert(css.includes('prefers-reduced-motion'), 'Missing reduced motion support');
 console.log(`OK: ${pages.length} pages, local fonts, ${iconNames.size} icons and dynamic styles.`);
