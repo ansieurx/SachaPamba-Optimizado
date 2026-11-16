@@ -397,7 +397,13 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     const catalogReady = initialCatalogCache
       ? Promise.resolve(initialCatalogCache.products)
       : (typeof window !== 'undefined' && (window.location.pathname.endsWith('categoria.html') || window.location.pathname.endsWith('producto.html')) ? getCatalogReady() : Promise.resolve([]));
-    let PRODUCTS = initialCatalogCache?.products || [];
+    const FEATURED_FALLBACK_PRODUCTS = [
+      { id: 'omega-3', name: 'Perlas de Omega 3, 6 y 9 de Sacha Inchi', price: 12.00, size: '60 perlas softgel', image: 'assets/products/7c5bf62f4f14dc71-480.webp', categoryId: '2', isFeatured: true, isBestSeller: true, isNew: false, rating: 5.0, reviewsCount: 39, shortDesc: 'Ácidos grasos esenciales prensados en frío. Apoya la salud cardiovascular, cerebral y articular.' },
+      { id: 'maca', name: 'Maca Andina Negra Gelatinizada', price: 8.50, size: '250g polvo soluble', image: 'assets/products/baf4197e25758359-480.webp', categoryId: '4', isFeatured: true, isBestSeller: false, isNew: false, rating: 5.0, reviewsCount: 58, shortDesc: 'Raíz andina adaptógena. Vigor, equilibrio hormonal y resistencia física sin irritar el estómago.' },
+      { id: 'cacao', name: 'Cacao Fino de Aroma Puro 100%', price: 6.00, size: '200g polvo puro', image: 'assets/products/f8ba90a61038bef6-480.webp', categoryId: '4', isFeatured: true, isBestSeller: false, isNew: false, rating: 4.9, reviewsCount: 47, shortDesc: 'Cacao criollo de Los Ríos sin azúcares añadidos ni alcalinización. Teobromina y magnesio puro.' },
+      { id: 'colageno', name: 'Colágeno Hidrolizado + Biotina y Camu Camu', price: 18.00, size: '300g polvo puro', image: 'https://www.nutrimea.com/cdn/shop/articles/Capture_d_ecran_2026-05-19_a_11.06.21_420c22a4-7e46-4463-82fd-1a52e0692427.png?v=1779871726&width=480', categoryId: '4', isFeatured: true, isBestSeller: false, isNew: true, rating: 5.0, reviewsCount: 31, shortDesc: 'Péptidos bioactivos de fácil absorción con vitamina C natural para regenerar articulaciones, piel y cabello.' }
+    ];
+    let PRODUCTS = initialCatalogCache?.products || FEATURED_FALLBACK_PRODUCTS;
     window.PRODUCTS = PRODUCTS;
 
     /* Estado del carrito y checkout */
@@ -2611,6 +2617,11 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
             slide.classList.add('opacity-100', 'pointer-events-auto', 'z-10');
             slide.removeAttribute('aria-hidden');
             slide.setAttribute('aria-current', 'true');
+            const lazyImg = slide.querySelector('img[data-src]');
+            if (lazyImg) {
+              lazyImg.src = lazyImg.getAttribute('data-src');
+              lazyImg.removeAttribute('data-src');
+            }
           } else {
             slide.classList.remove('opacity-100', 'pointer-events-auto', 'z-10');
             slide.classList.add('opacity-0', 'pointer-events-none', 'z-0', 'invisible');
@@ -4833,13 +4844,20 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       if (paginaActual === 'index.html' || paginaActual === '') {
         initApp();
         appInitialized = true;
-        getCatalogReady().then(loadedProducts => {
-          if (loadedProducts && loadedProducts.length) {
-            window.PRODUCTS = loadedProducts;
-            PRODUCTS = window.PRODUCTS;
-            updateCatalogCounters();
-          }
-        }).catch(() => {});
+        const scheduleBackgroundCatalog = () => {
+          getCatalogReady().then(loadedProducts => {
+            if (loadedProducts && loadedProducts.length) {
+              window.PRODUCTS = loadedProducts;
+              PRODUCTS = window.PRODUCTS;
+              updateCatalogCounters();
+            }
+          }).catch(() => {});
+        };
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(scheduleBackgroundCatalog, { timeout: 4000 });
+        } else {
+          setTimeout(scheduleBackgroundCatalog, 3500);
+        }
         return;
       }
 
