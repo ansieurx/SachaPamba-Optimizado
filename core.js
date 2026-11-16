@@ -4746,9 +4746,9 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
               sessionStorage.setItem('sacha_header_html', codigoHtml);
               localStorage.setItem('sacha_header_html', codigoHtml);
             } catch(e) {}
-            const elementoActual = document.getElementById('site-header-container') || document.querySelector('header.smart-header');
-            if (elementoActual && elementoActual.outerHTML !== codigoHtml) {
-              elementoActual.outerHTML = codigoHtml;
+            const placeholder = document.getElementById('site-header-container');
+            if (placeholder) {
+              placeholder.outerHTML = codigoHtml;
             }
           })
           .catch(error => console.warn('Error al cargar header.html:', error))
@@ -4762,9 +4762,9 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
               sessionStorage.setItem('sacha_footer_html', codigoHtml);
               localStorage.setItem('sacha_footer_html', codigoHtml);
             } catch(e) {}
-            const elementoActual = document.getElementById('site-footer-container') || document.querySelector('footer[role="contentinfo"]');
-            if (elementoActual && elementoActual.outerHTML !== codigoHtml) {
-              elementoActual.outerHTML = codigoHtml;
+            const placeholder = document.getElementById('site-footer-container');
+            if (placeholder) {
+              placeholder.outerHTML = codigoHtml;
             }
           })
           .catch(error => console.warn('Error al cargar footer.html:', error))

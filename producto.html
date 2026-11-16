@@ -6,6 +6,10 @@
   <style id="page-paint">
     html { background-color: #FEFAE0; color-scheme: light; }
     body { background-color: #FEFAE0; }
+    #site-header-container { min-height: 161px; display: block; background-color: #283618; contain: layout; }
+    #site-footer-container { min-height: 280px; display: block; background-color: #283618; contain: layout; }
+    @media (min-width: 640px) { #site-header-container { min-height: 145px; } }
+    @media (min-width: 1024px) { #site-header-container { min-height: 115px; } }
     #nav-category-backdrop.hidden, [aria-modal="true"][aria-hidden="true"] { display: none; }
     @view-transition { navigation: none; }
   </style>
@@ -20,10 +24,10 @@
   <link rel="preload" href="header.html" as="fetch" crossorigin>
   <link rel="preload" href="footer.html" as="fetch" crossorigin>
   <link rel="preconnect" href="https://uucegdaytxxoedwnoenv.supabase.co" crossorigin>
-  <link rel="modulepreload" href="assets/vendor/supabase/supabase-js.bundle.mjs">
   <link rel="modulepreload" href="assets/product-images.js">
   <link rel="modulepreload" href="assets/account-service.js">
   <link rel="modulepreload" href="assets/validators.js">
+  <link rel="modulepreload" href="core.js">
   <link rel="modulepreload" href="app.js">
 </head>
 <body class="min-h-screen flex flex-col bg-brand-cream text-brand-leaf selection:bg-brand-olive selection:text-brand-forest" lang="es">

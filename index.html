@@ -7,26 +7,37 @@
   <style id="page-paint">
     html { background-color: #FEFAE0; color-scheme: light; }
     body { background-color: #FEFAE0; }
+    #site-header-container { min-height: 161px; display: block; background-color: #283618; contain: layout; }
+    #site-footer-container { min-height: 280px; display: block; background-color: #283618; contain: layout; }
+    @media (min-width: 640px) { #site-header-container { min-height: 145px; } }
+    @media (min-width: 1024px) { #site-header-container { min-height: 115px; } }
     #nav-category-backdrop.hidden, [aria-modal="true"][aria-hidden="true"] { display: none; }
     @view-transition { navigation: none; }
   </style>
   <meta http-equiv="content-language" content="es">
   <meta name="language" content="Spanish">
-  <link rel="preconnect" href="https://images.unsplash.com">
-  <link rel="preconnect" href="https://plus.unsplash.com">
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+  <link rel="preconnect" href="https://plus.unsplash.com" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tienda naturista en Quito — Sacha &amp; Pamba</title>
   
   <!-- Tipografías: Fraunces (Botánica/Editorial) + Outfit (Cuerpo moderno) + Caveat (Manuscrita artesanal) -->
   <link rel="preload" href="assets/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fraunces-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/site.css">
   <link rel="preload" href="header.html" as="fetch" crossorigin>
   <link rel="preload" href="footer.html" as="fetch" crossorigin>
+  <!-- Preload del recurso LCP (Hero Banner 1) con atributos responsivos acordes al viewport móvil y de escritorio -->
+  <link rel="preload" as="image"
+    href="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=70"
+    imagesrcset="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=480&q=70 480w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=70 800w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1200&q=70 1200w"
+    imagesizes="(max-width: 768px) 100vw, 1200px"
+    fetchpriority="high">
   <link rel="preconnect" href="https://uucegdaytxxoedwnoenv.supabase.co" crossorigin>
-  <link rel="modulepreload" href="assets/vendor/supabase/supabase-js.bundle.mjs">
   <link rel="modulepreload" href="assets/product-images.js">
   <link rel="modulepreload" href="assets/account-service.js">
   <link rel="modulepreload" href="assets/validators.js">
+  <link rel="modulepreload" href="core.js">
   <link rel="modulepreload" href="app.js">
 </head>
 <body class="min-h-screen flex flex-col bg-brand-cream text-brand-leaf selection:bg-brand-olive selection:text-brand-forest" lang="es">
@@ -615,15 +626,17 @@
               <div role="group" aria-roledescription="diapositiva" aria-label="Primer bloque del carrusel: Herbolaria Viva y Tradición Ancestral, 1 de 3" aria-current="true" class="hero-slide col-start-1 row-start-1 opacity-100 pointer-events-auto z-10 flex items-center justify-center w-full h-full relative">
                 <!-- Fondo visual natural andino/amazónico -->
                 <img
-                  src="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1280&q=75"
+                  src="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=70"
                   alt="Valles andinos y naturaleza viva"
                   class="absolute inset-0 w-full h-full object-cover object-center"
+                  width="1200"
+                  height="500"
                   loading="eager"
                   decoding="async"
                   fetchpriority="high"
-                  srcset="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=480&q=75 480w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=960&q=75 960w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1280&q=75 1280w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1600&q=75 1600w"
-                  sizes="(max-width: 1280px) 100vw, 1280px"
-                  onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1280&q=75'"
+                  srcset="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=480&q=70 480w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=70 800w, https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1200&q=70 1200w"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=800&q=70'"
                 >
                 <!-- Gradiente unificado para legibilidad y contraste -->
                 <div class="absolute inset-0 bg-black/45 sm:bg-black/40 backdrop-brightness-95"></div>
@@ -664,15 +677,17 @@
               <div role="group" aria-roledescription="diapositiva" aria-label="Segundo bloque del carrusel: Beneficio Exclusivo de Bienvenida, 2 de 3" aria-hidden="true" class="hero-slide col-start-1 row-start-1 opacity-0 pointer-events-none z-0 invisible flex items-center justify-center w-full h-full relative">
                 <!-- Fondo visual -->
                 <img
-                  src="https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=1280&q=75"
+                  src="https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=800&q=70"
                   alt="Persona consumiendo productos orgánicos y naturales feliz"
                   class="absolute inset-0 w-full h-full object-cover object-center"
+                  width="1200"
+                  height="500"
                   loading="lazy"
                   decoding="async"
                   fetchpriority="low"
-                  srcset="https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=480&q=75 480w, https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=960&q=75 960w, https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=1280&q=75 1280w, https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=1600&q=75 1600w"
-                  sizes="(max-width: 1280px) 100vw, 1280px"
-                  onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='https://images.unsplash.com/photo-1527887980323-88b77f646535?auto=format&fit=crop&w=1280&q=75'"
+                  srcset="https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=480&q=70 480w, https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=800&q=70 800w, https://plus.unsplash.com/premium_photo-1670262456358-11ecc6386d1a?auto=format&fit=crop&w=1200&q=70 1200w"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='https://images.unsplash.com/photo-1527887980323-88b77f646535?auto=format&fit=crop&w=800&q=70'"
                 >
                 <!-- Gradiente unificado con mayor contraste para fondo claro -->
                 <div class="absolute inset-0 bg-black/55 sm:bg-black/50 backdrop-brightness-90"></div>
@@ -714,15 +729,17 @@
               <div role="group" aria-roledescription="diapositiva" aria-label="Tercer bloque del carrusel: Superalimentos con Máxima Calidad, 3 de 3" aria-hidden="true" class="hero-slide col-start-1 row-start-1 opacity-0 pointer-events-none z-0 invisible flex items-center justify-center w-full h-full relative">
                 <!-- Fondo visual verde botánico -->
                 <img
-                  src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1280&q=75"
+                  src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=70"
                   alt="Hojas medicinales y superalimentos puros"
                   class="absolute inset-0 w-full h-full object-cover object-center"
+                  width="1200"
+                  height="500"
                   loading="lazy"
                   decoding="async"
                   fetchpriority="low"
-                  srcset="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=480&q=75 480w, https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=960&q=75 960w, https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1280&q=75 1280w, https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1600&q=75 1600w"
-                  sizes="(max-width: 1280px) 100vw, 1280px"
-                  onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='https://images.unsplash.com/photo-1587593810167-a84920ea0781?auto=format&fit=crop&w=1280&q=75'"
+                  srcset="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=480&q=70 480w, https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=70 800w, https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=70 1200w"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='https://images.unsplash.com/photo-1587593810167-a84920ea0781?auto=format&fit=crop&w=800&q=70'"
                 >
                 <!-- Gradiente unificado con mayor contraste para hojas -->
                 <div class="absolute inset-0 bg-black/55 sm:bg-black/50 backdrop-brightness-90"></div>
@@ -880,9 +897,7 @@
               class="product-card-image-box relative rounded-xl sm:rounded-2xl overflow-hidden bg-brand-cream aspect-square mb-3 sm:mb-4 border border-brand-forest/20 shadow-xs select-none"
               ondragstart="return false;"
             >
-              <img decoding="async" loading="lazy"
-                
-                alt="Perlas de Omega 3, 6 y 9 de Sacha Inchi"
+              <img decoding="async" loading="lazy" src="assets/products/7c5bf62f4f14dc71-480.webp" width="480" height="480" alt="Perlas de Omega 3, 6 y 9 de Sacha Inchi"
                 draggable="false"
                 ondragstart="return false;"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
@@ -955,9 +970,7 @@
               class="product-card-image-box relative rounded-xl sm:rounded-2xl overflow-hidden bg-brand-cream aspect-square mb-3 sm:mb-4 border border-brand-forest/20 shadow-xs select-none"
               ondragstart="return false;"
             >
-              <img decoding="async" loading="lazy"
-                
-                alt="Maca Andina Negra Gelatinizada"
+              <img decoding="async" loading="lazy" src="assets/products/baf4197e25758359-480.webp" width="480" height="480" alt="Maca Andina Negra Gelatinizada"
                 draggable="false"
                 ondragstart="return false;"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
@@ -1030,9 +1043,7 @@
               class="product-card-image-box relative rounded-xl sm:rounded-2xl overflow-hidden bg-brand-cream aspect-square mb-3 sm:mb-4 border border-brand-forest/20 shadow-xs select-none"
               ondragstart="return false;"
             >
-              <img decoding="async" loading="lazy"
-                
-                alt="Cacao Fino de Aroma Puro 100%"
+              <img decoding="async" loading="lazy" src="assets/products/f8ba90a61038bef6-480.webp" width="480" height="480" alt="Cacao Fino de Aroma Puro 100%"
                 draggable="false"
                 ondragstart="return false;"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
@@ -1105,9 +1116,7 @@
               class="product-card-image-box relative rounded-xl sm:rounded-2xl overflow-hidden bg-brand-cream aspect-square mb-3 sm:mb-4 border border-brand-forest/20 shadow-xs select-none"
               ondragstart="return false;"
             >
-              <img decoding="async" loading="lazy"
-                
-                alt="Colágeno Hidrolizado + Biotina y Camu Camu"
+              <img decoding="async" loading="lazy" src="https://www.nutrimea.com/cdn/shop/articles/Capture_d_ecran_2026-05-19_a_11.06.21_420c22a4-7e46-4463-82fd-1a52e0692427.png?v=1779871726&width=480" width="480" height="480" alt="Colágeno Hidrolizado + Biotina y Camu Camu"
                 draggable="false"
                 ondragstart="return false;"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"

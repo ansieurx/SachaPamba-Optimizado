@@ -3791,6 +3791,34 @@ body {
     }
 }
 
+#site-header-container {
+    display: block;
+    width: 100%;
+    min-height: 161px;
+    background-color: #283618;
+    contain: layout;
+}
+
+@media (min-width: 640px) {
+    #site-header-container {
+        min-height: 145px;
+    }
+}
+
+@media (min-width: 1024px) {
+    #site-header-container {
+        min-height: 115px;
+    }
+}
+
+#site-footer-container {
+    display: block;
+    width: 100%;
+    min-height: 280px;
+    background-color: #283618;
+    contain: layout;
+}
+
 .smart-header {
     position: sticky;
     top: 0;
