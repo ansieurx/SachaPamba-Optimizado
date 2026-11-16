@@ -21,18 +21,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tienda naturista en Quito — Sacha &amp; Pamba</title>
   
-  <!-- Tipografías: Fraunces (Botánica/Editorial) + Outfit (Cuerpo moderno) + Caveat (Manuscrita artesanal) -->
-  <link rel="preload" href="assets/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fraunces-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css">
-  <link rel="preload" href="header.html" as="fetch" crossorigin>
-  <link rel="preload" href="footer.html" as="fetch" crossorigin>
-  <!-- Preload del recurso LCP (Hero Banner 1) con variantes locales WebP de alta compresión -->
+  <!-- Preload del recurso LCP (Hero Banner 1) al inicio para máxima prioridad de red -->
   <link rel="preload" as="image"
     href="assets/hero-banner-800.webp"
-    imagesrcset="assets/hero-banner-480.webp 480w, assets/hero-banner-800.webp 800w, assets/hero-banner-1200.webp 1200w"
-    imagesizes="(max-width: 768px) 100vw, 1200px"
+    imagesrcset="assets/hero-banner-480.webp 480w, assets/hero-banner-640.webp 640w, assets/hero-banner-800.webp 800w, assets/hero-banner-1200.webp 1200w"
+    imagesizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"
     fetchpriority="high">
+
+  <link rel="preload" href="assets/site.css" as="style">
+  <link rel="stylesheet" href="assets/site.css">
+
+  <link rel="preload" href="assets/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="header.html" as="fetch" crossorigin>
+  <link rel="preload" href="footer.html" as="fetch" crossorigin>
   <link rel="preconnect" href="https://uucegdaytxxoedwnoenv.supabase.co" crossorigin>
   <link rel="modulepreload" href="assets/product-images.js">
   <link rel="modulepreload" href="assets/account-service.js">
@@ -634,8 +635,8 @@
                   loading="eager"
                   decoding="async"
                   fetchpriority="high"
-                  srcset="assets/hero-banner-480.webp 480w, assets/hero-banner-800.webp 800w, assets/hero-banner-1200.webp 1200w"
-                  sizes="(max-width: 768px) 100vw, 1200px"
+                  srcset="assets/hero-banner-480.webp 480w, assets/hero-banner-640.webp 640w, assets/hero-banner-800.webp 800w, assets/hero-banner-1200.webp 1200w"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"
                   onerror="this.onerror=null; this.removeAttribute('srcset'); this.src='assets/hero-banner-800.webp'"
                 >
                 <!-- Gradiente unificado para legibilidad y contraste -->

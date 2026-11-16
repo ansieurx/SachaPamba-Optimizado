@@ -384,9 +384,19 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     // entre categorías no quite ni vuelva a crear las tarjetas visibles.
     const initialCatalogCache = readCatalogCache();
     if (initialCatalogCache) catalogCategories = initialCatalogCache.categories;
+    let catalogReadyPromise = null;
+    function getCatalogReady() {
+      if (catalogReadyPromise) return catalogReadyPromise;
+      if (initialCatalogCache) {
+        catalogReadyPromise = Promise.resolve(initialCatalogCache.products);
+      } else {
+        catalogReadyPromise = cargarCatalogo();
+      }
+      return catalogReadyPromise;
+    }
     const catalogReady = initialCatalogCache
       ? Promise.resolve(initialCatalogCache.products)
-      : cargarCatalogo();
+      : (typeof window !== 'undefined' && (window.location.pathname.endsWith('categoria.html') || window.location.pathname.endsWith('producto.html')) ? getCatalogReady() : Promise.resolve([]));
     let PRODUCTS = initialCatalogCache?.products || [];
     window.PRODUCTS = PRODUCTS;
 
@@ -2877,7 +2887,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
           switchTab(tabKey);
         };
       });
-      updateCarousel();
+      requestAnimationFrame(updateCarousel);
     }
 
     function setupDynamicListeners() {
@@ -3799,7 +3809,14 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         }
       });
       const focusHeader = document.querySelector('.smart-header');
-      const measureHeader = () => document.documentElement.style.setProperty('--focus-header-height', `${getComputedStyle(focusHeader).position === 'sticky' ? focusHeader.getBoundingClientRect().height : 0}px`);
+      const measureHeader = () => {
+        requestAnimationFrame(() => {
+          const header = document.querySelector('.smart-header');
+          if (!header) return;
+          const height = header.offsetHeight || 0;
+          document.documentElement.style.setProperty('--focus-header-height', `${height}px`);
+        });
+      };
       if (focusHeader) {
         measureHeader();
         new ResizeObserver(measureHeader).observe(focusHeader);
@@ -4117,9 +4134,13 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       const signature = JSON.stringify(cart);
       if (items.dataset.cartSignature === signature) return;
       items.dataset.cartSignature = signature;
-      const scrollTop = items.scrollTop;
-      items.replaceChildren(...(cart.length ? cart.map(item => cloneTemplate('cart-drawer-item-template', itemValues(item))) : [cloneTemplate('cart-drawer-empty-template')]));
-      items.scrollTop = scrollTop;
+      if (cart.length && items.scrollHeight > items.clientHeight) {
+        const scrollTop = items.scrollTop;
+        items.replaceChildren(...cart.map(item => cloneTemplate('cart-drawer-item-template', itemValues(item))));
+        items.scrollTop = scrollTop;
+      } else {
+        items.replaceChildren(...(cart.length ? cart.map(item => cloneTemplate('cart-drawer-item-template', itemValues(item))) : [cloneTemplate('cart-drawer-empty-template')]));
+      }
     }
 
     function updateCheckoutSteps(step) {
@@ -4804,6 +4825,21 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       if (esPaginaInformativa) {
         initApp();
         appInitialized = true;
+        return;
+      }
+
+      // En la portada (index.html), los productos destacados ya están en el HTML estático.
+      // Iniciamos de inmediato para maximizar LCP y sincronizamos el catálogo completo en segundo plano sin bloquear.
+      if (paginaActual === 'index.html' || paginaActual === '') {
+        initApp();
+        appInitialized = true;
+        getCatalogReady().then(loadedProducts => {
+          if (loadedProducts && loadedProducts.length) {
+            window.PRODUCTS = loadedProducts;
+            PRODUCTS = window.PRODUCTS;
+            updateCatalogCounters();
+          }
+        }).catch(() => {});
         return;
       }
 
