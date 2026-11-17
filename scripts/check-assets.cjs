@@ -29,6 +29,19 @@ for (const [, file] of css.matchAll(/url\(["']?(?:\.\/)?([^)'"\s]+)/g)) {
   assert(fs.existsSync(path.join('assets', file)), `Missing font: ${file}`);
 }
 
+const textFonts = new Map(['Outfit', 'Fraunces', 'Caveat'].map(family => [family, []]));
+postcss.parse(css).walkAtRules('font-face', face => {
+  const family = face.nodes.find(node => node.prop === 'font-family')?.value.replace(/^['"]|['"]$/g, '');
+  if (textFonts.has(family)) textFonts.get(family).push(face);
+});
+for (const [family, faces] of textFonts) {
+  assert.equal(faces.length, 1, `${family}: expected one font face`);
+  assert.equal(faces[0].nodes.find(node => node.prop === 'font-display')?.value, 'swap', `${family}: text must remain visible while the font loads`);
+}
+const caveatFace = textFonts.get('Caveat')[0];
+assert.equal(caveatFace.nodes.find(node => node.prop === 'unicode-range')?.value.toUpperCase(), 'U+0026', 'Caveat must be limited to the ampersand glyph');
+assert(caveatFace.nodes.find(node => node.prop === 'src')?.value.includes('caveat-ampersand.woff2'), 'Caveat must use its ampersand subset');
+
 // Dynamic states must remain styled after replacing the runtime CSS generator.
 for (const selector of ['.hidden', '.flex', '.opacity-0', '.opacity-100', '.scale-110', '.bg-brand-forest', '.text-brand-cream', '.border-red-500', '.border-green-600']) {
   assert(rules.has(selector), `Missing runtime utility: ${selector}`);
