@@ -52,13 +52,20 @@
       try {
         var c = document.getElementById('site-header-container');
         if (!c) return;
-        var h = sessionStorage.getItem('sacha_header_html') || localStorage.getItem('sacha_header_html');
-        if (h) { c.outerHTML = h; }
-        else {
+        var h = sessionStorage.getItem('sacha_header_html_v2') || localStorage.getItem('sacha_header_html_v2');
+        if (h) {
+          c.outerHTML = h;
+          if (window.actualizarElementosMenuCategorias) window.actualizarElementosMenuCategorias();
+          if (window.updateAuthUI) window.updateAuthUI();
+        } else {
           fetch('header.html').then(function(r){return r.text();}).then(function(html){
-            try { sessionStorage.setItem('sacha_header_html', html); localStorage.setItem('sacha_header_html', html); } catch(e){}
+            try { sessionStorage.setItem('sacha_header_html_v2', html); localStorage.setItem('sacha_header_html_v2', html); } catch(e){}
             var el = document.getElementById('site-header-container');
-            if (el) el.outerHTML = html;
+            if (el) {
+              el.outerHTML = html;
+              if (window.actualizarElementosMenuCategorias) window.actualizarElementosMenuCategorias();
+              if (window.updateAuthUI) window.updateAuthUI();
+            }
           });
         }
       } catch(e) {}
@@ -766,7 +773,7 @@
                     </span>
 
                     <span role="group" aria-label="Botones de acción del cuarto bloque" class="flex flex-wrap items-center justify-center gap-3 sm:gap-3.5 w-full">
-                      <a href="categoria.html?cat=suplementos"   class="px-6 py-3 rounded-full bg-brand-sunflower text-brand-leaf font-bold text-xs sm:text-sm tracking-wider uppercase hover:bg-[#c49226] transition-all duration-200 active:scale-95 shadow-xl flex items-center justify-center gap-2 text-center">
+                      <a href="categoria.html?cat=alimentacion-natural&subcat=superalimentos"   class="px-6 py-3 rounded-full bg-brand-sunflower text-brand-leaf font-bold text-xs sm:text-sm tracking-wider uppercase hover:bg-[#c49226] transition-all duration-200 active:scale-95 shadow-xl flex items-center justify-center gap-2 text-center">
                         <span>Comprar Superalimentos</span>
                         <i aria-hidden="true" class="ph ph-arrow-right text-base"></i>
                       </a>
