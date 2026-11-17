@@ -1384,12 +1384,24 @@ body:not([data-cart-has-items="true"]) #cart-drawer-toggle-btn,
 
 #home-products-grid .product-card-footer,
 #home-products-grid .product-card-actions {
+  position: relative;
+  z-index: 2;
   flex-wrap: wrap !important;
 }
 
 #home-products-grid .product-card-actions {
   max-width: 100%;
   justify-content: flex-end;
+}
+
+#home-products-grid .product-card-actions button {
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+#home-products-grid .product-card-actions button * {
+  pointer-events: none;
 }
 
 #hero-carousel-section [aria-label="Filtro de productos en inicio"] > span,

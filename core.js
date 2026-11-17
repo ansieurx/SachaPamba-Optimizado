@@ -412,6 +412,37 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     let PRODUCTS = initialCatalogCache?.products || FEATURED_FALLBACK_PRODUCTS;
     window.PRODUCTS = PRODUCTS;
 
+    const PRODUCT_ID_ALIASES = {
+      'omega-3': 'capsulas-omega3',
+      'capsulas-omega-3': 'capsulas-omega3',
+      'maca': 'capsulas-maca',
+      'cacao': 'capsulas-cacao',
+      'vitamina-c': 'capsulas-vitaminac',
+      'cloruro-magnesio': 'polvo-magnesio',
+      'jarabe-sabila': 'remedio-sabila',
+      'moringa': 'polvo-moringa',
+      'sacha-inchi-polvo': 'capsulas-omega3',
+      'capsulas-omega3': 'capsulas-omega3',
+      'capsulas-maca': 'capsulas-maca',
+      'capsulas-cacao': 'capsulas-cacao',
+      'capsulas-vitaminac': 'capsulas-vitaminac',
+      'polvo-magnesio': 'polvo-magnesio',
+      'remedio-sabila': 'remedio-sabila',
+      'polvo-moringa': 'polvo-moringa'
+    };
+
+    function findProduct(id) {
+      if (!id) return null;
+      const targetId = String(id).trim();
+      const aliasId = PRODUCT_ID_ALIASES[targetId] || targetId;
+      return PRODUCTS.find(p => p.id === targetId || p.id === aliasId)
+        || FEATURED_FALLBACK_PRODUCTS.find(p => p.id === targetId || p.id === aliasId)
+        || PRODUCTS.find(p => PRODUCT_ID_ALIASES[p.id] === targetId || PRODUCT_ID_ALIASES[p.id] === aliasId)
+        || null;
+    }
+    window.findProduct = findProduct;
+    window.PRODUCT_ID_ALIASES = PRODUCT_ID_ALIASES;
+
     /* Estado del carrito y checkout */
     const CART_STORAGE_KEY = 'sacha_pamba_cart';
 
@@ -435,11 +466,11 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       cart = cart
         .map(item => {
           if (!item || !item.id) return null;
-          const liveProduct = PRODUCTS.find(p => p.id === item.id);
+          const liveProduct = findProduct(item.id);
           const price = liveProduct ? Number(liveProduct.price) : Number(item.price || 0);
           const quantity = Math.max(1, parseInt(item.quantity, 10) || 1);
           return {
-            id: item.id,
+            id: liveProduct ? liveProduct.id : item.id,
             name: liveProduct ? liveProduct.name : item.name,
             price: price,
             size: liveProduct ? liveProduct.size : (item.size || 'Presentación regular'),
@@ -694,66 +725,73 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
 
     function isFavorite(productId) {
       const favs = getFavorites();
-      return favs.includes(productId);
+      const canonicalId = findProduct(productId)?.id || PRODUCT_ID_ALIASES[productId] || productId;
+      return favs.some(id => id === productId || id === canonicalId || findProduct(id)?.id === canonicalId);
     }
 
     function updateFavoriteUI(productId, isFav) {
-      // 1. Actualizar botones en tarjetas de producto
-      document.querySelectorAll(`[id="card-fav-btn-${productId}"]`).forEach(btn => {
-        btn.setAttribute('aria-label', isFav ? 'Quitar de favoritos' : 'Añadir a favoritos');
-        btn.removeAttribute('title');
-        if (isFav) {
-          btn.className = 'card-fav-btn absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FEFAE0] hover:bg-white text-amber-500 flex items-center justify-center shadow-md border-2 border-brand-forest transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
-        } else {
-          btn.className = 'card-fav-btn absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#283618]/90 hover:bg-[#283618] text-brand-sunflower flex items-center justify-center shadow-md border border-brand-sunflower/40 transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
-        }
-        btn.replaceChildren(getHeartIconSVG(isFav, 'w-4 h-4 sm:w-4.5 sm:h-4.5'));
-      });
+      const canonicalId = findProduct(productId)?.id || PRODUCT_ID_ALIASES[productId] || productId;
+      const idsToUpdate = [...new Set([productId, canonicalId].filter(Boolean))];
+      idsToUpdate.forEach(id => {
+        // 1. Actualizar botones en tarjetas de producto
+        document.querySelectorAll(`[id="card-fav-btn-${id}"]`).forEach(btn => {
+          btn.setAttribute('aria-label', isFav ? 'Quitar de favoritos' : 'Añadir a favoritos');
+          btn.removeAttribute('title');
+          if (isFav) {
+            btn.className = 'card-fav-btn absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FEFAE0] hover:bg-white text-amber-500 flex items-center justify-center shadow-md border-2 border-brand-forest transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
+          } else {
+            btn.className = 'card-fav-btn absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#283618]/90 hover:bg-[#283618] text-brand-sunflower flex items-center justify-center shadow-md border border-brand-sunflower/40 transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
+          }
+          btn.replaceChildren(getHeartIconSVG(isFav, 'w-4 h-4 sm:w-4.5 sm:h-4.5'));
+        });
 
-      // 2. Actualizar botón en la vista de detalle de producto
-      const detailBtn = document.getElementById(`detail-fav-btn-${productId}`);
-      if (detailBtn) {
-        detailBtn.setAttribute('aria-label', isFav ? 'En favoritos: quitar de favoritos' : 'Añadir a favoritos');
-        detailBtn.removeAttribute('title');
-        if (isFav) {
-          detailBtn.className = 'w-full py-3.5 px-3 sm:px-4 rounded-xl bg-[#FEFAE0] hover:bg-white text-brand-forest border-2 border-brand-forest shadow-sm font-bold text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer select-none focus:outline-none min-h-[50px] sm:min-h-[52px]';
-          detailBtn.replaceChildren(getHeartIconSVG(true, 'w-5 h-5 text-amber-500 flex-shrink-0'), cloneTemplate('favorite-detail-label-template', {id:productId,label:'En favoritos'}));
-        } else {
-          detailBtn.className = 'w-full py-3.5 px-3 sm:px-4 rounded-xl bg-brand-forest hover:bg-[#1e2912] text-brand-cream border-2 border-brand-forest shadow-sm font-bold text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer select-none focus:outline-none min-h-[50px] sm:min-h-[52px]';
-          detailBtn.replaceChildren(getHeartIconSVG(false, 'w-5 h-5 text-brand-sunflower flex-shrink-0'), cloneTemplate('favorite-detail-label-template', {id:productId,label:'Añadir a favoritos'}));
+        // 2. Actualizar botón en la vista de detalle de producto
+        const detailBtn = document.getElementById(`detail-fav-btn-${id}`);
+        if (detailBtn) {
+          detailBtn.setAttribute('aria-label', isFav ? 'En favoritos: quitar de favoritos' : 'Añadir a favoritos');
+          detailBtn.removeAttribute('title');
+          if (isFav) {
+            detailBtn.className = 'w-full py-3.5 px-3 sm:px-4 rounded-xl bg-[#FEFAE0] hover:bg-white text-brand-forest border-2 border-brand-forest shadow-sm font-bold text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer select-none focus:outline-none min-h-[50px] sm:min-h-[52px]';
+            detailBtn.replaceChildren(getHeartIconSVG(true, 'w-5 h-5 text-amber-500 flex-shrink-0'), cloneTemplate('favorite-detail-label-template', {id,label:'En favoritos'}));
+          } else {
+            detailBtn.className = 'w-full py-3.5 px-3 sm:px-4 rounded-xl bg-brand-forest hover:bg-[#1e2912] text-brand-cream border-2 border-brand-forest shadow-sm font-bold text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer select-none focus:outline-none min-h-[50px] sm:min-h-[52px]';
+            detailBtn.replaceChildren(getHeartIconSVG(false, 'w-5 h-5 text-brand-sunflower flex-shrink-0'), cloneTemplate('favorite-detail-label-template', {id,label:'Añadir a favoritos'}));
+          }
         }
-      }
 
-      // 3. Actualizar botón sobre la imagen principal en detalle si existe
-      const detailImgBtn = document.getElementById(`detail-img-fav-btn-${productId}`);
-      if (detailImgBtn) {
-        detailImgBtn.setAttribute('aria-label', isFav ? 'Quitar de favoritos' : 'Añadir a favoritos');
-        detailImgBtn.removeAttribute('title');
-        if (isFav) {
-          detailImgBtn.className = 'card-fav-btn absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FEFAE0] hover:bg-white text-amber-500 flex items-center justify-center shadow-md border-2 border-brand-forest transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
-        } else {
-          detailImgBtn.className = 'card-fav-btn absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#283618]/90 hover:bg-[#283618] text-brand-sunflower flex items-center justify-center shadow-md border border-brand-sunflower/40 transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
+        // 3. Actualizar botón sobre la imagen principal en detalle si existe
+        const detailImgBtn = document.getElementById(`detail-img-fav-btn-${id}`);
+        if (detailImgBtn) {
+          detailImgBtn.setAttribute('aria-label', isFav ? 'Quitar de favoritos' : 'Añadir a favoritos');
+          detailImgBtn.removeAttribute('title');
+          if (isFav) {
+            detailImgBtn.className = 'card-fav-btn absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FEFAE0] hover:bg-white text-amber-500 flex items-center justify-center shadow-md border-2 border-brand-forest transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
+          } else {
+            detailImgBtn.className = 'card-fav-btn absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#283618]/90 hover:bg-[#283618] text-brand-sunflower flex items-center justify-center shadow-md border border-brand-sunflower/40 transition-all active:scale-90 cursor-pointer select-none focus:outline-none';
+          }
+          detailImgBtn.replaceChildren(getHeartIconSVG(isFav, 'w-4.5 h-4.5 sm:w-5 sm:h-5'));
         }
-        detailImgBtn.replaceChildren(getHeartIconSVG(isFav, 'w-4.5 h-4.5 sm:w-5 sm:h-5'));
-      }
 
-      // Micro-pulso sutil e instantáneo en el botón
-      document.querySelectorAll(`[id="card-fav-btn-${productId}"], [id="detail-img-fav-btn-${productId}"]`).forEach(btn => {
-        btn.classList.add('scale-110');
-        setTimeout(() => btn.classList.remove('scale-110'), 180);
+        // Micro-pulso sutil e instantáneo en el botón
+        document.querySelectorAll(`[id="card-fav-btn-${id}"], [id="detail-img-fav-btn-${id}"]`).forEach(btn => {
+          btn.classList.add('scale-110');
+          setTimeout(() => btn.classList.remove('scale-110'), 180);
+        });
       });
     }
 
     function toggleFavorite(productId, forceAdd = false) {
-      const product = PRODUCTS.find(p => p.id === productId);
+      const product = findProduct(productId);
       if (!product) return false;
+      const canonicalId = product.id;
       expireFavoriteUndoActions();
       const favs = getFavorites();
-      const index = favs.indexOf(productId);
+      const index = favs.findIndex(id => id === productId || id === canonicalId || findProduct(id)?.id === canonicalId);
       const wasFavorite = index !== -1;
       const restoreListFocus = !!document.activeElement?.closest('[data-favorites-items]');
       if (forceAdd && wasFavorite) {
         updateFavoriteUI(productId, true);
+        if (canonicalId !== productId) updateFavoriteUI(canonicalId, true);
         return true;
       }
 
@@ -785,10 +823,12 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         };
       } else {
         delete favoriteUndoActions[productId];
+        if (canonicalId !== productId) delete favoriteUndoActions[canonicalId];
       }
       saveFavorites(favs);
       saveFavoriteUndoState();
       updateFavoriteUI(productId, added);
+      if (canonicalId !== productId) updateFavoriteUI(canonicalId, added);
       updateFavoritesTabContent();
       if (restoreListFocus) {
         const undo = document.querySelector(`[data-favorite-undo="${productId}"]`);
@@ -1103,18 +1143,20 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     // Tarjeta de producto simplificada y perfectamente adaptable exclusiva para el apartado de favoritos
 
     function addToCart(productId, quantity = 1, redirect = false) {
-      const product = PRODUCTS.find(p => p.id === productId);
+      const product = findProduct(productId);
       if (!product) return;
 
       const numQty = Math.max(1, parseInt(quantity, 10) || 1);
-      const existingIndex = cart.findIndex(item => item.id === productId);
+      const targetId = product.id;
+      const existingIndex = cart.findIndex(item => item.id === productId || item.id === targetId || findProduct(item.id)?.id === targetId);
       if (existingIndex > -1) {
         const curQty = parseInt(cart[existingIndex].quantity, 10) || 0;
         cart[existingIndex].quantity = curQty + numQty;
         cart[existingIndex].price = Number(product.price);
+        cart[existingIndex].id = targetId;
       } else {
         cart.push({
-          id: product.id,
+          id: targetId,
           name: product.name,
           price: Number(product.price),
           size: product.size,
@@ -1568,7 +1610,10 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         sessionStorage.setItem('sacha_catalog_scroll_pos', String(scrollY));
         if (productId) {
           sessionStorage.setItem('sacha_last_inspected_product_id', productId);
-          const card = document.getElementById(`fav-card-${productId}`) || document.getElementById(`product-card-${productId}`);
+          const alias = PRODUCT_ID_ALIASES[productId] || '';
+          const card = document.getElementById(`fav-card-${productId}`)
+            || document.getElementById(`product-card-${productId}`)
+            || (alias ? document.getElementById(`fav-card-${alias}`) || document.getElementById(`product-card-${alias}`) : null);
           if (card) {
             const rect = card.getBoundingClientRect();
             sessionStorage.setItem('sacha_card_viewport_offset', String(rect.top));
@@ -4356,7 +4401,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       const root = document.querySelector('[data-product-detail]');
       if (!root) return;
       const id = new URLSearchParams(window.location.search).get('id') || 'maca';
-      const product = PRODUCTS.find(p => p.id === id) || PRODUCTS[0];
+      const product = findProduct(id) || PRODUCTS[0];
       if (!product) return;
       document.title = `${product.name} — Sacha & Pamba`;
       bindValues(root, productValues(product));
@@ -4407,7 +4452,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         if (action.before !== true || action.after !== false || action.origin !== 'favorites' || ids.includes(id)) {
           delete favoriteUndoActions[id];
         } else if (action.before && !action.after) {
-          const product = PRODUCTS.find(p => p.id === id);
+          const product = findProduct(id);
           if (product) pendingUndoFavorites[id] = product;
         }
       });
@@ -4415,7 +4460,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       ids.forEach(id => { if(!favoritesDisplayOrder.includes(id)) favoritesDisplayOrder.push(id); });
       Object.keys(pendingUndoFavorites).forEach(id => { if(!favoritesDisplayOrder.includes(id)) favoritesDisplayOrder.push(id); });
       favoritesDisplayOrder = favoritesDisplayOrder.filter(id => ids.includes(id) || pendingUndoFavorites[id]);
-      const all = favoritesDisplayOrder.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+      const all = favoritesDisplayOrder.map(id => findProduct(id)).filter(Boolean);
       const filtered = all.filter(p => (filtro_cat==='all'||p.category===filtro_cat)&&(filtro_subcat==='all'||p.subcategory===filtro_subcat));
       list.replaceChildren(...(filtered.length ? filtered.map(product => {
         const removed = !!pendingUndoFavorites[product.id];
@@ -4584,6 +4629,8 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       setFavFilterCategory,
       setFavFilterSubcategory,
       resetFavFilters,
+      findProduct,
+      PRODUCT_ID_ALIASES,
       addToCart,
       removeFromCart,
       undoRemoveFromCart,
@@ -4907,8 +4954,11 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         initializeCatalogPage();
         const grid = document.getElementById('home-products-grid');
         if (grid) {
-          grid.replaceChildren(...PRODUCTS.filter(product => product.isFeatured)
-            .map(product => cloneTemplate('product-card-template', productValues(product))));
+          const featured = PRODUCTS.filter(product => product.isFeatured);
+          if (featured.length > 0) {
+            grid.replaceChildren(...featured.map(product => cloneTemplate('product-card-template', productValues(product))));
+            featured.forEach(product => updateFavoriteUI(product.id, isFavorite(product.id)));
+          }
         }
       };
 
@@ -4917,7 +4967,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       if (initialCatalogCache) applyCatalogToPage();
 
       const loadedProducts = await catalogReady;
-      if (loadedProducts !== PRODUCTS) {
+      if (loadedProducts && loadedProducts !== PRODUCTS && loadedProducts.length > 0) {
         window.PRODUCTS = loadedProducts;
         PRODUCTS = window.PRODUCTS;
         applyCatalogToPage();
