@@ -52,7 +52,7 @@
     }
 
     function getAllOrders() {
-      return accountService.orders;
+      return (window.accountService || accountService)?.orders || [];
     }
 
     function saveAllOrders() {
@@ -67,7 +67,8 @@
       if (!order || pendingOrderStatuses.has(order.id) || order.status === newStatus) return;
       pendingOrderStatuses.add(order.id);
       try {
-        const saved = await accountService.changeOrderStatus(order.id, newStatus);
+        const service = window.accountService || accountService;
+        const saved = await service.changeOrderStatus(order.id, newStatus);
         const index = getAllOrders().findIndex(item => item.id === saved.id);
         const latest = document.querySelector('[data-latest-order]');
         if (index === 0 && latest) updateOrderElements(latest, saved, 'latest');
@@ -228,11 +229,13 @@ export function updateAccountDetailsUI() {
   if (window.updateFavoritesTabContent) window.updateFavoritesTabContent();
 }
 
-export function initializeAccountPage() {
+export async function initializeAccountPage() {
   if (!document.getElementById('account-tab-personal')) return;
+  if (window.initialAuthReady) await window.initialAuthReady;
   if (!window.getCurrentUser?.()) {
     window.pendingCheckoutRedirect = window.getCurrentPageUrl?.();
     window.openAuthModal?.('login', 'Inicia sesión o regístrate para acceder a tu cuenta.');
+    return;
   }
   updateAccountDetailsUI();
   const tab = new URLSearchParams(window.location.search).get('tab');

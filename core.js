@@ -3152,8 +3152,9 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     function inicializarBotonAutenticacion() {
       const btn = document.getElementById('nav-auth-btn');
       if (btn) {
-        btn.onclick = (e) => {
+        btn.onclick = async (e) => {
           e.preventDefault();
+          if (initialAuthReady) await initialAuthReady;
           const user = getCurrentUser();
           if (user) {
             const currentPath = getPageName();
@@ -4491,11 +4492,13 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       updateFavoritesTabContent();
     }
 
-    function initializeAccountPage() {
+    async function initializeAccountPage() {
       if(!document.getElementById('account-tab-personal'))return;
+      if (initialAuthReady) await initialAuthReady;
       if(!getCurrentUser()) {
         pendingCheckoutRedirect=getCurrentPageUrl();
         openAuthModal('login','Inicia sesión o regístrate para acceder a tu cuenta.');
+        return;
       }
       updateAccountDetailsUI();
       const tab=new URLSearchParams(window.location.search).get('tab');
