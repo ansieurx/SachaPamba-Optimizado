@@ -68,9 +68,12 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     // Comprobar si existe una sesión previa antes de cargar la librería
     function tieneSesionActivaGuardada() {
       try {
+        if (localStorage.getItem('a11y-authenticated') === 'true' || sessionStorage.getItem('a11y-delay-auth') === 'true') {
+          return true;
+        }
         for (let i = 0; i < localStorage.length; i++) {
           const clave = localStorage.key(i);
-          if (clave && clave.startsWith('sb-') && clave.endsWith('-auth-token')) {
+          if (clave && clave.startsWith('sb-') && clave.includes('-auth-token')) {
             return true;
           }
         }
@@ -90,9 +93,12 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     let appInitialized = false;
     let initialAuthError = null;
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-    const initialAuthReady = tieneSesionActivaGuardada()
-      ? accountService.restore().catch(error => { initialAuthError = error; })
+    let initialAuthReady = tieneSesionActivaGuardada()
+      ? accountService.restore().catch(error => { initialAuthError = error; return null; })
       : Promise.resolve(null);
+    window.initialAuthReady = initialAuthReady;
+    window.tieneSesionActivaGuardada = tieneSesionActivaGuardada;
+    window.accountService = accountService;
 
     function authErrorMessage(error) {
       if (error?.code === 'same_password') return 'La nueva contraseña debe ser diferente a la anterior.';
@@ -2100,8 +2106,9 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       sessionStorage.removeItem('sacha_max_checkout_step');
     }
 
-    function handleProceedToCheckout(e) {
-      if (e) e.preventDefault();
+    async function handleProceedToCheckout(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (initialAuthReady) await initialAuthReady;
       const user = getCurrentUser();
       if (!user) {
         pendingCheckoutRedirect = 'checkout-retiro.html';
@@ -2111,11 +2118,15 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       navigateTo('checkout-retiro.html');
     }
 
-    function handleStepperNav(url) {
-      if (url.startsWith('checkout') && !getCurrentUser()) {
-        pendingCheckoutRedirect = url;
-        openAuthModal('register', 'Inicia sesión o regístrate para proceder con tu compra.');
-        return;
+    async function handleStepperNav(url, e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (url.startsWith('checkout')) {
+        if (initialAuthReady) await initialAuthReady;
+        if (!getCurrentUser()) {
+          pendingCheckoutRedirect = url;
+          openAuthModal('register', 'Inicia sesión o regístrate para proceder con tu compra.');
+          return;
+        }
       }
       if (url.startsWith('checkout-pago') && document.getElementById('pickup-name')) {
         const name = document.getElementById('pickup-name');
@@ -2174,6 +2185,7 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     }
 
     async function processPayment() {
+      if (initialAuthReady) await initialAuthReady;
       if (!getCurrentUser()) {
         pendingCheckoutRedirect = 'checkout-pago.html';
         openAuthModal('login');
@@ -3386,6 +3398,8 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
           emailToUse = resolved;
         }
         const user = await accountService.signIn(emailToUse, password);
+        initialAuthReady = Promise.resolve(user);
+        window.initialAuthReady = initialAuthReady;
         passInput.value = '';
         updateAuthUI();
         syncCurrentPage();
@@ -3535,6 +3549,8 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
     async function logoutUser() {
       await submitAccountRequest(null, async () => {
         await accountService.signOut();
+        initialAuthReady = Promise.resolve(null);
+        window.initialAuthReady = initialAuthReady;
         updateAuthUI();
         clearTimeout(cartQuoteTimer);
         sessionStorage.removeItem('sacha_web_checkout_request');
@@ -4176,17 +4192,19 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       if (document.getElementById('pay-opt-tarjeta')) selectPaymentOption(selectedPaymentMethod);
     }
 
-    function initializePurchasePage() {
+    async function initializePurchasePage() {
       const pickup = document.getElementById('pickup-name');
       const payment = document.getElementById('btn-confirm-checkout');
       const confirmation = document.querySelector('[aria-label="Resumen del pedido confirmado"]');
       const isCart = !!document.querySelector('[data-cart-items]');
       if (!pickup && !payment && !confirmation && !isCart) return;
+      if (initialAuthReady) await initialAuthReady;
       const user = getCurrentUser();
       if (pickup || payment) {
         if (!user) {
           pendingCheckoutRedirect = getCurrentPageUrl();
           openAuthModal('register', 'Inicia sesión o regístrate para proceder con tu compra.');
+          return;
         } else if (!cart.length) {
           window.location.replace('carrito.html');
           return;
@@ -4663,6 +4681,14 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
       updateCheckoutTotals,
       initializePurchasePage,
       updateCatalogSelection,
+      initialAuthReady,
+      tieneSesionActivaGuardada,
+      accountService,
+      submitAccountRequest,
+      validateFields,
+      checkoutDocumentType,
+      nameError,
+      documentError,
       updateProductDetails,
       updateProductReviews,
       updateFavoritesTabContent,
@@ -4928,12 +4954,18 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
         if (!appInitialized || authOperationPending || event === 'INITIAL_SESSION') return;
         if (event === 'SIGNED_OUT') {
           accountService.clear();
+          initialAuthReady = Promise.resolve(null);
+          window.initialAuthReady = initialAuthReady;
           sessionStorage.removeItem('sacha_web_checkout_request');
           sessionStorage.removeItem('sacha_web_pickup');
         }
         setTimeout(async () => {
           try {
-            if (event !== 'SIGNED_OUT') await accountService.restore();
+            if (event !== 'SIGNED_OUT') {
+              initialAuthReady = accountService.restore();
+              window.initialAuthReady = initialAuthReady;
+              await initialAuthReady;
+            }
             updateAuthUI();
             updateAccountDetailsUI();
             updateCartUI();

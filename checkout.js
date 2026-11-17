@@ -28,8 +28,9 @@ export function resetCheckoutProgress() {
   sessionStorage.removeItem('sacha_max_checkout_step');
 }
 
-export function handleProceedToCheckout(e) {
-  if (e) e.preventDefault();
+export async function handleProceedToCheckout(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (window.initialAuthReady) await window.initialAuthReady;
   const user = window.getCurrentUser?.();
   if (!user) {
     window.pendingCheckoutRedirect = 'checkout-retiro.html';
@@ -39,11 +40,15 @@ export function handleProceedToCheckout(e) {
   window.navigateTo?.('checkout-retiro.html');
 }
 
-export function handleStepperNav(url) {
-  if (url.startsWith('checkout') && !window.getCurrentUser?.()) {
-    window.pendingCheckoutRedirect = url;
-    window.openAuthModal?.('register', 'Inicia sesión o regístrate para proceder con tu compra.');
-    return;
+export async function handleStepperNav(url, e) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (url.startsWith('checkout')) {
+    if (window.initialAuthReady) await window.initialAuthReady;
+    if (!window.getCurrentUser?.()) {
+      window.pendingCheckoutRedirect = url;
+      window.openAuthModal?.('register', 'Inicia sesión o regístrate para proceder con tu compra.');
+      return;
+    }
   }
   if (url.startsWith('checkout-pago') && document.getElementById('pickup-name')) {
     const name = document.getElementById('pickup-name');
@@ -107,6 +112,7 @@ export function selectPaymentOption(option) {
 }
 
 export async function processPayment() {
+  if (window.initialAuthReady) await window.initialAuthReady;
   if (!window.getCurrentUser?.()) {
     window.pendingCheckoutRedirect = 'checkout-pago.html';
     window.openAuthModal?.('login');
@@ -182,17 +188,21 @@ export function updateCheckoutTotals() {
   if (totalEl) totalEl.textContent = `$${totals.total}`;
 }
 
-export function initializePurchasePage() {
+export async function initializePurchasePage() {
   const pickup = document.getElementById('pickup-name');
   const payment = document.getElementById('btn-confirm-checkout');
   const confirmation = document.querySelector('[aria-label="Resumen del pedido confirmado"]');
   const isCart = !!document.querySelector('[data-cart-items]');
   if (!pickup && !payment && !confirmation && !isCart) return;
+  if (window.initialAuthReady) {
+    await window.initialAuthReady;
+  }
   const user = window.getCurrentUser?.();
   if (pickup || payment) {
     if (!user) {
       window.pendingCheckoutRedirect = window.getCurrentPageUrl?.();
       window.openAuthModal?.('register', 'Inicia sesión o regístrate para proceder con tu compra.');
+      return;
     } else if (!window.cart?.length) {
       window.location.replace('carrito.html');
       return;
