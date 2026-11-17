@@ -1,5 +1,6 @@
 module.exports = {
-  content: ['./*.html', './app.js'],
+  content: ['./*.html', './app.js', './core.js'],
+  safelist: ['hidden', 'flex', 'opacity-0', 'opacity-100', 'scale-110', 'bg-brand-forest', 'text-brand-cream', 'border-red-500', 'border-green-600'],
   ...{
       theme: {
         /* Escalamos la tipografía base para accesibilidad, con proporciones equilibradas */

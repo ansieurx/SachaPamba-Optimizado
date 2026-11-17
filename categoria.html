@@ -64,14 +64,14 @@
       try {
         var c = document.getElementById('site-header-container');
         if (!c) return;
-        var h = sessionStorage.getItem('sacha_header_html_v2') || localStorage.getItem('sacha_header_html_v2');
+        var h = sessionStorage.getItem('sacha_header_html_v3') || localStorage.getItem('sacha_header_html_v3');
         if (h) {
           c.outerHTML = h;
           if (window.actualizarElementosMenuCategorias) window.actualizarElementosMenuCategorias();
           if (window.updateAuthUI) window.updateAuthUI();
         } else {
           fetch('header.html').then(function(r){return r.text();}).then(function(html){
-            try { sessionStorage.setItem('sacha_header_html_v2', html); localStorage.setItem('sacha_header_html_v2', html); } catch(e){}
+            try { sessionStorage.setItem('sacha_header_html_v3', html); localStorage.setItem('sacha_header_html_v3', html); } catch(e){}
             var el = document.getElementById('site-header-container');
             if (el) {
               el.outerHTML = html;
@@ -100,8 +100,10 @@
               <span class="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0">
                 <img src="assets/logo-80.webp" alt="" width="48" height="48" class="w-full h-full object-contain">
               </span>
-              <h2 id="auth-modal-title" class="font-botanic font-bold text-base sm:text-lg text-brand-cream tracking-tight inline-flex items-center whitespace-nowrap leading-tight truncate">
-                <span>Sacha</span><span class="font-hand text-brand-sunflower text-[1.2em] font-bold mx-1.5 inline-block align-baseline">&amp;</span><span>Pamba</span>
+              <h2 id="auth-modal-title" class="min-w-0">
+                <span class="font-botanic text-[clamp(0.875rem,3.4vw,1.875rem)] font-bold tracking-tight text-brand-cream block leading-tight flex items-center whitespace-nowrap">
+                  Sacha<span class="font-hand text-brand-sunflower text-[1.25em] sm:text-[1.35em] font-bold ml-1 sm:ml-1.5 mr-2 sm:mr-2.5 inline-block transform -rotate-12 align-baseline pr-0.5">&amp;</span>Pamba
+                </span>
               </h2>
             </div>
 
@@ -1366,11 +1368,11 @@
       try {
         var c = document.getElementById('site-footer-container');
         if (!c) return;
-        var f = sessionStorage.getItem('sacha_footer_html') || localStorage.getItem('sacha_footer_html');
+        var f = sessionStorage.getItem('sacha_footer_html_v2') || localStorage.getItem('sacha_footer_html_v2');
         if (f) { c.outerHTML = f; }
         else {
           fetch('footer.html').then(function(r){return r.text();}).then(function(html){
-            try { sessionStorage.setItem('sacha_footer_html', html); localStorage.setItem('sacha_footer_html', html); } catch(e){}
+            try { sessionStorage.setItem('sacha_footer_html_v2', html); localStorage.setItem('sacha_footer_html_v2', html); } catch(e){}
             var el = document.getElementById('site-footer-container');
             if (el) el.outerHTML = html;
           });

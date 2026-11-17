@@ -4884,11 +4884,11 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
 
       // 1. Inyección ultra rápida desde memoria caché local (0 ms de latencia)
       try {
-        const encabezadoCache = sessionStorage.getItem('sacha_header_html_v2') || localStorage.getItem('sacha_header_html_v2');
+        const encabezadoCache = sessionStorage.getItem('sacha_header_html_v3') || localStorage.getItem('sacha_header_html_v3');
         if (encabezadoCache && document.getElementById('site-header-container')) {
           document.getElementById('site-header-container').outerHTML = encabezadoCache;
         }
-        const pieCache = sessionStorage.getItem('sacha_footer_html') || localStorage.getItem('sacha_footer_html');
+        const pieCache = sessionStorage.getItem('sacha_footer_html_v2') || localStorage.getItem('sacha_footer_html_v2');
         if (pieCache && document.getElementById('site-footer-container')) {
           document.getElementById('site-footer-container').outerHTML = pieCache;
         }
@@ -4912,8 +4912,8 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
           .then(respuesta => respuesta.text())
           .then(codigoHtml => {
             try {
-              sessionStorage.setItem('sacha_header_html_v2', codigoHtml);
-              localStorage.setItem('sacha_header_html_v2', codigoHtml);
+              sessionStorage.setItem('sacha_header_html_v3', codigoHtml);
+              localStorage.setItem('sacha_header_html_v3', codigoHtml);
             } catch(e) {}
             const placeholder = document.getElementById('site-header-container');
             if (placeholder) {
@@ -4938,8 +4938,8 @@ import { documentError, profileErrors, nameError, isValidEmail, isValidPhone, bi
           .then(respuesta => respuesta.text())
           .then(codigoHtml => {
             try {
-              sessionStorage.setItem('sacha_footer_html', codigoHtml);
-              localStorage.setItem('sacha_footer_html', codigoHtml);
+              sessionStorage.setItem('sacha_footer_html_v2', codigoHtml);
+              localStorage.setItem('sacha_footer_html_v2', codigoHtml);
             } catch(e) {}
             const placeholder = document.getElementById('site-footer-container');
             if (placeholder) {
